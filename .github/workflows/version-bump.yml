@@ -1,51 +1,62 @@
 # .github/workflows/bump_version.yml
-name: Bump Version on Release Drafter Completion
+name: Scheduled Bump Version on Draft Release
 
 on:
   workflow_run:
     workflows: ["Release Drafter"]  # Must match the name of the Release Drafter workflow
     types:
       - completed
+  workflow_dispatch:  # Optional: Remove after testing
 
 jobs:
   bump-version:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Retrieve the whole history for accurate versioning
+          fetch-depth: 0  # Necessary for `bump2version` to work correctly
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'  # Specify the version you're using
+          python-version: '3.x'  # Specify the Python version you use
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install bump2version
 
-      - name: Fetch Draft Release Version
-        id: fetch_version
-        run: |
-          # Fetch the latest draft release
-          RELEASES=$(curl -s \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/releases)
+      - name: Get Draft Releases
+        id: get_drafts
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 10
+            });
+            const draftReleases = releases.data.filter(release => release.draft);
+            if (draftReleases.length === 0) {
+              core.setOutput('found', 'false');
+            } else {
+              // Assuming you want to process the latest draft release
+              const latestDraft = draftReleases[0];
+              const versionMatch = latestDraft.name.match(/v(\d+\.\d+\.\d+)/);
+              if (versionMatch) {
+                core.setOutput('version', versionMatch[1]);
+                core.setOutput('found', 'true');
+              } else {
+                core.setOutput('found', 'false');
+                core.setFailed('No valid version found in the latest draft release title.');
+              }
+            }
 
-          # Use jq to extract version info from the latest draft release
-          VERSION=$(echo "$RELEASES" | jq -r '[.[] | select(.draft == true)][0].name' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-
-          if [ -z "$VERSION" ]; then
-            echo "No valid version found in draft releases."
-            exit 1
-          fi
-
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Exit if No Draft Release Found
+        if: steps.get_drafts.outputs.found != 'true'
+        run: echo "No draft releases found. Exiting."
 
       - name: Configure Git
         run: |
@@ -54,9 +65,9 @@ jobs:
 
       - name: Bump Version with bump2version
         run: |
-          bump2version --new-version $VERSION --allow-dirty --verbose
+          bump2version --new-version $VERSION --allow-dirty patch --verbose
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ steps.get_drafts.outputs.version }}
 
       - name: Check for Changes
         id: changes
@@ -79,16 +90,18 @@ jobs:
         uses: ad-m/github-push-action@v0.6.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bump-version  # Used for the version update PR
+          branch: bump-version-branch  # Dedicated branch for version bumps
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bump-version
-          title: "Bump version to ${{ env.VERSION }}"
-          commit-message: "Bump version to ${{ env.VERSION }}"
+          branch: bump-version-branch
+          title: "Bump version to ${{ steps.get_drafts.outputs.version }}"
+          commit-message: "Bump version to ${{ steps.get_drafts.outputs.version }}"
           body: |
-            This PR updates the `__version__` fields to the latest version: **${{ env.VERSION }}**.
+            This PR updates the `__version__` fields in the codebase to the latest version: **${{ steps.get_drafts.outputs.version }}**.
+
+            Please review and merge to apply the version update.
           labels: version-update
