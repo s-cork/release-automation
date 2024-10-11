@@ -116,6 +116,7 @@ jobs:
         if: steps.changes.outputs.changes == 'true'
         run: |
           echo "Starting Push Process"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push origin bump-version-branch -f
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
