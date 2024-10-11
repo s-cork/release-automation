@@ -4,15 +4,15 @@
 ## What's Changed
 ## 🚀 Features
 
-- test version @s-cork
+- test version (@s-cork)\n  https://github.com/s-cork/release-automation/pull/10
 
 ## 🛠 Maintenance
 
-- Change bump2version workflow @s-cork
+- Change bump2version workflow (@s-cork)\n  https://github.com/s-cork/release-automation/pull/8
 
 ## Other changes
 
-- remove comment @s-cork
+- remove comment (@s-cork)\n  https://github.com/s-cork/release-automation/pull/6
 
 ## Contributors
 Thanks to all our contributors! 🎉
