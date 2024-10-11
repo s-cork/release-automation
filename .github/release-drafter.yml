@@ -17,7 +17,7 @@ categories:
     labels:
       - 'type: docs'
   - title: 'Other changes'
-change-template: '- [#$NUMBER]($URL) $TITLE (@$AUTHOR)'
+change-template: '- $TITLE [#$NUMBER]($URL)'
 exclude-labels:
   - 'skip-changelog'
 version-resolver:
@@ -33,6 +33,7 @@ version-resolver:
       - 'type: docs'
       - 'type: maintenance'
   default: patch
+category-template: '### $TITLE'
 template: |
   ## What's Changed
   $CHANGES
