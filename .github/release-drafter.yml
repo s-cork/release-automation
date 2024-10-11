@@ -3,37 +3,35 @@ tag-template: 'v$RESOLVED_VERSION'
 categories:
   - title: '🚀 Features'
     labels:
-      - 'feature'
-      - 'enhancement'
-      - 'feat'
+      - 'type: feature'
   - title: '🐛 Bug Fixes'
     labels:
-      - 'bug'
-      - 'fix'
-      - 'bugfix'
+      - 'type:bug'
   - title: '❗️ Breaking Changes'
     labels:
-      - 'breaking'
+      - 'type: breaking'
   - title: '🛠 Maintenance'
     labels:
       - 'maintenance'
   - title: '📖 Documentation'
     labels:
-      - 'docs'
+      - 'type: docs'
+  - title: 'Other changes'
 change-template: '- $TITLE @$AUTHOR'
 exclude-labels:
   - 'skip-changelog'
 version-resolver:
   major:
     labels:
-      - 'major'
-      - 'breaking'
+      - 'type: breaking'
   minor:
     labels:
-      - 'minor'
+      - 'type: feature'
   patch:
     labels:
-      - 'patch'
+      - 'type: bug'
+      - 'type: docs'
+      - 'type: maintenance'
   default: patch
 template: |
   ## What's Changed
@@ -41,15 +39,18 @@ template: |
 
   ## Contributors
   Thanks to all our contributors! 🎉
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
 autolabeler:
-  - label: 'docs'
+  - label: 'type: docs'
     files:
       - '*.md'
-  - label: 'bug'
+  - label: 'type: bug'
     branch:
       - '/fix\/.+/'
     title:
       - '/fix/i'
-  - label: 'feat'
+  - label: 'type: feature'
     branch:
       - '/feat\/.+/'

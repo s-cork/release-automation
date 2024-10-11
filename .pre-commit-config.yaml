@@ -6,16 +6,17 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort (python)
+  # - repo: https://github.com/pycqa/isort
+  #   rev: 5.13.2
+  #   hooks:
+  #     - id: isort
+  #       name: isort (python)
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.4
     hooks:
       - id: ruff
+        args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
@@ -28,12 +29,12 @@ repos:
               - --detect-license-in-X-top-lines=6
               - --use-current-year
 
-  # - repo: local
-  #   hooks:
-  #     - id: fix-version
-  #       name: Fix version
-  #       entry: python scripts/fix_version.py --config setup.cfg
-  #       files: '\.py$'
-  #       language: system
-  #       pass_filenames: true
-  #       types: [python]
+  - repo: local
+    hooks:
+      - id: fix-version
+        name: Fix version
+        entry: python scripts/fix_version.py
+        files: '\.py$'
+        language: system
+        pass_filenames: true
+        types: [python]
