@@ -1,6 +1,20 @@
 # Changelog
 
-## v0.2.0 (01/01/1970)
+## v0.3.0 (01/01/1970)
+## What's Changed
+### 🚀 Features
+
+- Add log [#14](https://github.com/s-cork/release-automation/pull/14)
+
+## Contributors
+Thanks to all our contributors! 🎉
+@s-cork
+
+**Full Changelog**: https://github.com/s-cork/release-automation/compare/v0.2.0...v0.3.0
+
+---
+
+## v0.2.0 (11/10/2024)
 ## What's Changed
 ### 🚀 Features
 
