@@ -103,6 +103,7 @@ jobs:
         run: |
           # Update the changelog
           npx github-release-notes changelog -o --token=$GITHUB_TOKEN
+          git add CHANGELOG.md
 
       - name: Check for Changes
         if: steps.get_drafts.outputs.found == 'true'
