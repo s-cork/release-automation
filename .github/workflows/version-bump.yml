@@ -114,11 +114,11 @@ jobs:
 
       - name: Push Changes
         if: steps.changes.outputs.changes == 'true'
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bump-version-branch  # Dedicated branch for version bumps
-          force: true
+        run: |
+          echo "Starting Push Process"
+          git push origin bump-version-branch -f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
