@@ -1,13 +1,13 @@
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 categories:
-  - title: '🚀 Features'
-    labels:
-      - 'type: feature'
   - title: '🐛 Bug Fixes'
     labels:
       - 'type:bug'
-  - title: '❗️ Breaking Changes'
+  - title: '🚀 Features'
+    labels:
+      - 'type: feature'
+  - title: '💥 Breaking Changes'
     labels:
       - 'type: breaking'
   - title: '🛠 Maintenance'
@@ -41,6 +41,7 @@ template: |
 
   ## Contributors
   Thanks to all our contributors! 🎉
+  $CONTRIBUTORS
 
   **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
