@@ -132,11 +132,11 @@ jobs:
           title: "[Bump version] auto-update"
           commit-message: "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
           body: |
-            This PR updates the `__version__` fields in the codebase to the latest version.
+            This PR updates the `__version__` and CHANGELOG.md.
 
             Please review and merge to apply the version update.
 
-            After merging this PR you should update the set the latest release
+            After merging this PR you should publish the latest release
             https://github.com/${{ github.repository }}/releases
 
           labels: skip-changelog
