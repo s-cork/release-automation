@@ -1,0 +1,89 @@
+# .github/workflows/bump_version.yml
+name: Bump Version on Draft Release
+
+on:
+  release:
+    types: [created, edited]
+
+jobs:
+  bump-version:
+    if: github.event.release.draft == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Necessary for `bump2version` to work correctly
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Specify the Python version you use
+
+      - name: Install bump2version
+        run: |
+          python -m pip install --upgrade pip
+          pip install bump2version
+
+      - name: Extract Version from Release
+        id: extract_version
+        run: |
+          echo "Release Title: ${{ github.event.release.title }}"
+          # Adjust the regex if your version format differs
+          VERSION=$(echo "${{ github.event.release.title }}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          if [ -z "$VERSION" ]; then
+            echo "No version number found in the release title."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Version with bump2version
+        run: |
+          bump2version --new-version $VERSION --allow-dirty patch --verbose
+        env:
+          VERSION: ${{ env.VERSION }}
+
+      - name: Check for Changes
+        id: changes
+        run: |
+          git diff
+          if git diff --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit Changes
+        if: steps.changes.outputs.changes == 'true'
+        run: |
+          git add .
+          git commit -m "Bump version to $VERSION" || echo "No changes to commit"
+
+      - name: Push Changes
+        if: steps.changes.outputs.changes == 'true'
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version  # Dedicated branch for version bumps
+
+      - name: Create or Update Pull Request
+        if: steps.changes.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version
+          title: "Bump version to ${{ env.VERSION }}"
+          commit-message: "Bump version to ${{ env.VERSION }}"
+          body: |
+            This PR updates the `__version__` fields in the codebase to the latest version: **${{ env.VERSION }}**.
+
+            Please review and merge to apply the version update.
+          labels: version-update
+          # The action automatically updates the PR if it already exists
+          # By default, it searches for a PR from the same branch and updates it
