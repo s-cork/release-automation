@@ -118,10 +118,11 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: bump-version-branch  # Dedicated branch for version bumps
+          force: true
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: bump-version-branch
@@ -131,4 +132,4 @@ jobs:
             This PR updates the `__version__` fields in the codebase to the latest version: **${{ steps.get_drafts.outputs.version }}**.
 
             Please review and merge to apply the version update.
-          labels: version-update
+          labels: skip-changelog
