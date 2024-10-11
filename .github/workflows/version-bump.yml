@@ -71,22 +71,22 @@ jobs:
               }
             }
 
-      - name: List Releases for Debugging
-        run: |
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               https://api.github.com/repos/${{ github.repository }}/releases \
-               | jq '.[] | {name: .name, draft: .draft}'
-
-      - name: Debug Outputs
-        run: |
-          echo "Found Draft: ${{ steps.get_drafts.outputs.found }}"
-          echo "Version: ${{ steps.get_drafts.outputs.version }}"
-
       - name: Configure Git
         if: steps.get_drafts.outputs.found == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch all branches to ensure we can check if the branch exists
+          git fetch origin
+
+          # Create or checkout the bump version branch
+          if git show-ref --quiet refs/remotes/origin/bump-version-branch; then
+            git checkout bump-version-branch
+            git rebase origin/main # Rebase to ensure it's up-to-date with the main branch
+          else
+            git checkout -b bump-version-branch
+          fi
 
       - name: Bump Version with bump2version
         if: steps.get_drafts.outputs.found == 'true'
@@ -111,11 +111,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
-          git push origin bump-version-branch --force
+          git push origin bump-version-branch --force-with-lease
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
