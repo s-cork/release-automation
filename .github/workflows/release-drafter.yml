@@ -12,7 +12,9 @@ permissions:
 
 jobs:
   update_release_draft:
-    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref != 'bump-version'
+    if: >
+      github.event.pull_request.merged == true &&
+      !contains(github.event.pull_request.labels.*.name, 'skip changelog')
     permissions:
       contents: write
       pull-requests: write
