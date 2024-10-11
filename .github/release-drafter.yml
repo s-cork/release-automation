@@ -12,7 +12,7 @@ categories:
       - 'type: breaking'
   - title: '🛠 Maintenance'
     labels:
-      - 'maintenance'
+      - 'type: maintenance'
   - title: '📖 Documentation'
     labels:
       - 'type: docs'
