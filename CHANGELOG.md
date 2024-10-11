@@ -21,6 +21,7 @@
 
 ## Contributors
 Thanks to all our contributors! 🎉
+@s-cork
 
 **Full Changelog**: https://github.com/s-cork/release-automation/compare/v0.1.0...v0.2.0
 
@@ -46,5 +47,3 @@ Thanks to all our contributors! 🎉
 Thanks to all our contributors! 🎉
 
 **Full Changelog**: https://github.com/s-cork/release-automation/compare/...v0.1.0
-
-#edit
