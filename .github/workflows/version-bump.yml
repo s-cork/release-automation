@@ -109,17 +109,16 @@ jobs:
       - name: Commit Changes
         if: steps.changes.outputs.changes == 'true'
         run: |
-          git add client_code/ server_code/
+          git add .
           git commit -m "Bump version to ${{ steps.get_drafts.outputs.version }}" || echo "No changes to commit"
 
       - name: Push Changes
         if: steps.changes.outputs.changes == 'true'
-        run: |
-          echo "Starting Push Process"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git push origin bump-version-branch -f
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bump-version-branch  # Dedicated branch for version bumps
+          force: true
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
