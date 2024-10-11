@@ -127,4 +127,8 @@ jobs:
             This PR updates the `__version__` fields in the codebase to the latest version: **${{ steps.get_drafts.outputs.version }}**.
 
             Please review and merge to apply the version update.
+
+            After merging this PR you should update the set the latest release
+            https://github.com/${{ github.repository }}/releases
+
           labels: skip-changelog
