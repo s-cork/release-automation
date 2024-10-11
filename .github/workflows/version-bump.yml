@@ -1,4 +1,3 @@
-# .github/workflows/bump_version.yml
 name: Bump Version on Draft Release
 
 on:
