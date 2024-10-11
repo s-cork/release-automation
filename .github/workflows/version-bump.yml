@@ -121,7 +121,7 @@ jobs:
         run: |
           git add .
           git commit -m "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
-          git push origin bump-version --force-with-lease
+          # git push origin bump-version --force-with-lease
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
