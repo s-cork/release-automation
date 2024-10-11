@@ -83,7 +83,7 @@ jobs:
           # Create or checkout the bump version branch
           if git show-ref --quiet refs/remotes/origin/bump-version-branch; then
             git checkout bump-version-branch
-            git rebase origin/main # Rebase to ensure it's up-to-date with the main branch
+            git rebase origin/master # Rebase to ensure it's up-to-date with the main branch
           else
             git checkout -b bump-version-branch
           fi
