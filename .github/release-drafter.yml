@@ -5,6 +5,7 @@ categories:
     labels:
       - 'feature'
       - 'enhancement'
+      - 'feat'
   - title: '🐛 Bug Fixes'
     labels:
       - 'bug'
@@ -20,10 +21,13 @@ categories:
     labels:
       - 'docs'
 change-template: '- $TITLE @$AUTHOR'
+exclude-labels:
+  - 'skip-changelog'
 version-resolver:
   major:
     labels:
       - 'major'
+      - 'breaking'
   minor:
     labels:
       - 'minor'
@@ -37,3 +41,15 @@ template: |
   
   ## Contributors
   Thanks to all our contributors! 🎉
+autolabeler:
+  - label: 'docs'
+    files:
+      - '*.md'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+    title:
+      - '/fix/i'
+  - label: 'feat'
+    branch:
+      - '/feat\/.+/'
