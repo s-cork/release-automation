@@ -78,15 +78,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Fetch all branches to ensure we can check if the branch exists
-          git fetch origin
+          # git fetch origin
 
           # Create or checkout the bump version branch
-          if git show-ref --quiet refs/remotes/origin/bump-version-branch; then
-            git checkout bump-version-branch
-            git rebase origin/master # Rebase to ensure it's up-to-date with the main branch
-          else
-            git checkout -b bump-version-branch
-          fi
+          # if git show-ref --quiet refs/remotes/origin/bump-version-branch; then
+          #   git checkout bump-version-branch
+          #   git rebase origin/master # Rebase to ensure it's up-to-date with the main branch
+          # else
+          #   git checkout -b bump-version-branch
+          # fi
 
       - name: Bump Version with bump2version
         if: steps.get_drafts.outputs.found == 'true'
@@ -120,16 +120,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git add .
-          git commit --amend -m "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
-          git push origin bump-version-branch --force-with-lease
+          git commit -m "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
+          git push origin bump-version --force-with-lease
 
       - name: Create or Update Pull Request
         if: steps.changes.outputs.changes == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: bump-version-branch
-          title: "[Bump version] bump2version auto-update"
+          branch: bump-version
+          title: "[Bump version] auto-update"
           commit-message: "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
           body: |
             This PR updates the `__version__` fields in the codebase to the latest version.
