@@ -38,7 +38,7 @@ version-resolver:
 template: |
   ## What's Changed
   $CHANGES
-  
+
   ## Contributors
   Thanks to all our contributors! 🎉
 autolabeler:
