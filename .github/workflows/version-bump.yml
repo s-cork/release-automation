@@ -95,6 +95,15 @@ jobs:
         env:
           VERSION: ${{ steps.get_drafts.outputs.version }}
 
+      - name: Update changelog
+        if: steps.get_drafts.outputs.found == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.create_release.outputs.tag_name }}
+        run: |
+          # Update the changelog
+          npx github-release-notes changelog -o --token=$GITHUB_TOKEN
+
       - name: Check for Changes
         if: steps.get_drafts.outputs.found == 'true'
         id: changes
