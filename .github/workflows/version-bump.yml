@@ -132,7 +132,7 @@ jobs:
           title: "[Bump version] bump2version auto-update"
           commit-message: "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
           body: |
-            This PR updates the `__version__` fields in the codebase to the latest version: **${{ steps.get_drafts.outputs.version }}**.
+            This PR updates the `__version__` fields in the codebase to the latest version.
 
             Please review and merge to apply the version update.
 
