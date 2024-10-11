@@ -45,7 +45,7 @@ jobs:
               if (versionMatch) {
                 core.setOutput('version', versionMatch[1]);
                 core.setOutput('found', 'true');
-                core.setOutput('url', latestDraft.url)
+                core.setOutput('url', latestDraft.html_url)
               } else {
                 core.setOutput('found', 'false');
               }
