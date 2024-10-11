@@ -9,6 +9,10 @@ on:
 
 jobs:
   bump-version:
+    permissions:
+      contents: write
+      pull-requests: write
+
     runs-on: ubuntu-latest
 
     steps:
@@ -26,12 +30,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install bump2version jq
-
-      - name: Get release
-        id: get_release
-        uses: agners/get-draft-release@v1.2.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Get Draft Releases
         id: get_drafts
