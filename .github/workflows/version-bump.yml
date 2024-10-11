@@ -87,4 +87,7 @@ jobs:
             After merging this PR you should publish the latest release
             ${{ steps.draft.outputs.url }}
 
+            All releases:
+            https://github.com/${{ github.repository }}/releases
+
           labels: skip-changelog
