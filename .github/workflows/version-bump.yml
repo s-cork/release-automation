@@ -33,6 +33,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const core = require('@actions/core');
             const { owner, repo } = context.repo;
             console.log(`Fetching releases for ${owner}/${repo}`);
 
@@ -48,7 +49,7 @@ jobs:
 
             if (draftReleases.length === 0) {
               console.log('No draft releases found.');
-              return { found: 'false' };
+              core.setOutput('found', 'false');
             } else {
               const latestDraft = draftReleases[0];
               console.log(`Latest draft release: ${latestDraft.name}`);
@@ -57,12 +58,13 @@ jobs:
               if (versionMatch) {
                 const version = versionMatch[1];
                 console.log(`Parsed version: ${version}`);
-                return { version: version, found: 'true' };
+                core.setOutput('version', version);
+                core.setOutput('found', 'true');
               } else {
                 console.log('No valid version found in the latest draft release title.');
-                return { found: 'false' };
-                // Alternatively, throw an error if version parsing is critical
-                // throw new Error('No valid version found in the latest draft release title.');
+                core.setOutput('found', 'false');
+                // Optionally, you can fail the step if version parsing is critical
+                // core.setFailed('No valid version found in the latest draft release title.');
               }
             }
 
@@ -77,24 +79,21 @@ jobs:
           echo "Found Draft: ${{ steps.get_drafts.outputs.found }}"
           echo "Version: ${{ steps.get_drafts.outputs.version }}"
 
-      - name: Exit if No Draft Release Found
-        if: steps.get_drafts.outputs.found != 'true'
-        run: |
-          echo "No draft releases found. Exiting."
-          exit 0
-
       - name: Configure Git
+        if: steps.get_drafts.outputs.found == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Bump Version with bump2version
+        if: steps.get_drafts.outputs.found == 'true'
         run: |
           bump2version --new-version $VERSION --allow-dirty patch --verbose
         env:
           VERSION: ${{ steps.get_drafts.outputs.version }}
 
       - name: Check for Changes
+        if: steps.get_drafts.outputs.found == 'true'
         id: changes
         run: |
           git diff
