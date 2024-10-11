@@ -2,10 +2,10 @@ name: Bump Version
 
 on:
   workflow_run:
-    workflows: ["Release Drafter"]  # Must match the name of the Release Drafter workflow
+    workflows: ["Release Drafter"]
     types:
       - completed
-  workflow_dispatch:  # Optional: Remove after testing
+  workflow_dispatch:
 
 jobs:
   bump-version:
@@ -15,59 +15,43 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Necessary for `bump2version` to work correctly
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'  # Specify the Python version you use
+          python-version: '3.x'
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version jq
+          pip install bump2version
 
-      - name: Get Draft Releases
+      - name: Retrieve Draft Releases
         id: get_drafts
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
-            console.log(`Fetching releases for ${owner}/${repo}`);
+            const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            const latestDraft = releases.data.find(release => release.draft);
 
-            const releases = await github.rest.repos.listReleases({
-              owner,
-              repo,
-              per_page: 100
-            });
-            console.log(`Total releases fetched: ${releases.data.length}`);
-
-            const draftReleases = releases.data.filter(release => release.draft);
-            console.log(`Draft releases found: ${draftReleases.length}`);
-
-            if (draftReleases.length === 0) {
-              console.log('No draft releases found.');
+            if (!latestDraft) {
               core.setOutput('found', 'false');
             } else {
-              const latestDraft = draftReleases[0];
-              console.log(`Latest draft release: ${latestDraft.name}`);
-
               const versionMatch = latestDraft.name.match(/v(\d+\.\d+\.\d+)(?:[-_].*)?$/);
               if (versionMatch) {
-                const version = versionMatch[1];
-                console.log(`Parsed version: ${version}`);
-                core.setOutput('version', version);
+                core.setOutput('version', versionMatch[1]);
                 core.setOutput('found', 'true');
               } else {
-                console.log('No valid version found in the latest draft release title.');
                 core.setOutput('found', 'false');
-                // Optionally, you can fail the step if version parsing is critical
-                // core.setFailed('No valid version found in the latest draft release title.');
               }
             }
 
@@ -77,55 +61,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Fetch all branches to ensure we can check if the branch exists
-          # git fetch origin
-
-          # Create or checkout the bump version branch
-          # if git show-ref --quiet refs/remotes/origin/bump-version-branch; then
-          #   git checkout bump-version-branch
-          #   git rebase origin/master # Rebase to ensure it's up-to-date with the main branch
-          # else
-          #   git checkout -b bump-version-branch
-          # fi
-
       - name: Bump Version with bump2version
         if: steps.get_drafts.outputs.found == 'true'
-        run: |
-          bump2version --new-version $VERSION --allow-dirty patch --verbose
+        run: bump2version --new-version $VERSION --allow-dirty patch --verbose
         env:
           VERSION: ${{ steps.get_drafts.outputs.version }}
 
-      - name: Update changelog
+      - name: Update Changelog
         if: steps.get_drafts.outputs.found == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Update the changelog
-          npx github-release-notes changelog -o --token=$GITHUB_TOKEN
-
-      - name: Check for Changes
-        if: steps.get_drafts.outputs.found == 'true'
-        id: changes
-        run: |
-          git diff
-          if git diff --quiet; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "changes=true" >> $GITHUB_OUTPUT
-          fi
+        run: npx github-release-notes changelog -o --token=$GITHUB_TOKEN
 
       - name: Commit and Push Changes
-        if: steps.changes.outputs.changes == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git add .
           git commit -m "Bump version to ${{ steps.get_drafts.outputs.version }} [skip ci]"
-          # git push origin bump-version --force-with-lease
 
       - name: Create or Update Pull Request
-        if: steps.changes.outputs.changes == 'true'
         uses: peter-evans/create-pull-request@v7
+        if: steps.get_drafts.outputs.found == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: bump-version
