@@ -1,4 +1,4 @@
-name: Scheduled Bump Version on Draft Release
+name: Bump Version
 
 on:
   workflow_run:
@@ -29,23 +29,37 @@ jobs:
 
       - name: Get Draft Releases
         id: get_drafts
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const { owner, repo } = context.repo;
+            console.log(`Fetching releases for ${owner}/${repo}`);
+
             const releases = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              per_page: 10
+              owner,
+              repo,
+              per_page: 100
             });
+            console.log(`Total releases fetched: ${releases.data.length}`);
+
             const draftReleases = releases.data.filter(release => release.draft);
+            console.log(`Draft releases found: ${draftReleases.length}`);
+
             if (draftReleases.length === 0) {
+              console.log('No draft releases found.');
               return { found: 'false' };
             } else {
               const latestDraft = draftReleases[0];
+              console.log(`Latest draft release: ${latestDraft.name}`);
+
               const versionMatch = latestDraft.name.match(/v(\d+\.\d+\.\d+)(?:[-_].*)?$/);
               if (versionMatch) {
-                return { version: versionMatch[1], found: 'true' };
+                const version = versionMatch[1];
+                console.log(`Parsed version: ${version}`);
+                return { version: version, found: 'true' };
               } else {
+                console.log('No valid version found in the latest draft release title.');
                 return { found: 'false' };
                 // Alternatively, throw an error if version parsing is critical
                 // throw new Error('No valid version found in the latest draft release title.');
