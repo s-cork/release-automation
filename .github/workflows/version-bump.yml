@@ -3,6 +3,7 @@ name: Bump Version on Draft Release
 on:
   release:
     types: [created, edited]
+  workflow_dispatch:  # Optional: Remove after testing
 
 jobs:
   bump-version:
@@ -18,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'  # Specify the Python version you use
+          python-version: '3.x'
 
       - name: Install bump2version
         run: |
@@ -29,13 +30,20 @@ jobs:
         id: extract_version
         run: |
           echo "Release Title: ${{ github.event.release.title }}"
-          # Adjust the regex if your version format differs
           VERSION=$(echo "${{ github.event.release.title }}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           if [ -z "$VERSION" ]; then
             echo "No version number found in the release title."
             exit 1
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Debug GitHub Event Payload
+        run: |
+          echo "${{ toJson(github.event) }}"
+
+      - name: Debug Environment Variables
+        run: |
+          env
 
       - name: Configure Git
         run: |
@@ -61,7 +69,7 @@ jobs:
       - name: Commit Changes
         if: steps.changes.outputs.changes == 'true'
         run: |
-          git add .
+          git add client_code/ server_code/
           git commit -m "Bump version to $VERSION" || echo "No changes to commit"
 
       - name: Push Changes
@@ -84,5 +92,3 @@ jobs:
 
             Please review and merge to apply the version update.
           labels: version-update
-          # The action automatically updates the PR if it already exists
-          # By default, it searches for a PR from the same branch and updates it
