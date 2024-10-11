@@ -1,4 +1,3 @@
-# .github/workflows/bump_version.yml
 name: Scheduled Bump Version on Draft Release
 
 on:
@@ -26,7 +25,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version jq  # Ensure jq is installed for debugging
+          pip install bump2version jq
 
       - name: Get Draft Releases
         id: get_drafts
@@ -47,9 +46,17 @@ jobs:
               if (versionMatch) {
                 return { version: versionMatch[1], found: 'true' };
               } else {
-                throw new Error('No valid version found in the latest draft release title.');
+                return { found: 'false' };
+                // Alternatively, throw an error if version parsing is critical
+                // throw new Error('No valid version found in the latest draft release title.');
               }
             }
+
+      - name: List Releases for Debugging
+        run: |
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               https://api.github.com/repos/${{ github.repository }}/releases \
+               | jq '.[] | {name: .name, draft: .draft}'
 
       - name: Debug Outputs
         run: |
@@ -69,7 +76,9 @@ jobs:
 
       - name: Bump Version with bump2version
         run: |
-          bump2version --new-version ${{ steps.get_drafts.outputs.version }} --allow-dirty patch --verbose
+          bump2version --new-version $VERSION --allow-dirty patch --verbose
+        env:
+          VERSION: ${{ steps.get_drafts.outputs.version }}
 
       - name: Check for Changes
         id: changes
