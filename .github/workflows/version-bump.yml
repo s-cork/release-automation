@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version
+          pip install bump2version jq  # Ensure jq is installed for debugging
 
       - name: Get Draft Releases
         id: get_drafts
@@ -40,23 +40,27 @@ jobs:
             });
             const draftReleases = releases.data.filter(release => release.draft);
             if (draftReleases.length === 0) {
-              core.setOutput('found', 'false');
+              return { found: 'false' };
             } else {
-              // Assuming you want to process the latest draft release
               const latestDraft = draftReleases[0];
-              const versionMatch = latestDraft.name.match(/v(\d+\.\d+\.\d+)/);
+              const versionMatch = latestDraft.name.match(/v(\d+\.\d+\.\d+)(?:[-_].*)?$/);
               if (versionMatch) {
-                core.setOutput('version', versionMatch[1]);
-                core.setOutput('found', 'true');
+                return { version: versionMatch[1], found: 'true' };
               } else {
-                core.setOutput('found', 'false');
-                core.setFailed('No valid version found in the latest draft release title.');
+                throw new Error('No valid version found in the latest draft release title.');
               }
             }
 
+      - name: Debug Outputs
+        run: |
+          echo "Found Draft: ${{ steps.get_drafts.outputs.found }}"
+          echo "Version: ${{ steps.get_drafts.outputs.version }}"
+
       - name: Exit if No Draft Release Found
         if: steps.get_drafts.outputs.found != 'true'
-        run: echo "No draft releases found. Exiting."
+        run: |
+          echo "No draft releases found. Exiting."
+          exit 0
 
       - name: Configure Git
         run: |
@@ -65,9 +69,7 @@ jobs:
 
       - name: Bump Version with bump2version
         run: |
-          bump2version --new-version $VERSION --allow-dirty patch --verbose
-        env:
-          VERSION: ${{ steps.get_drafts.outputs.version }}
+          bump2version --new-version ${{ steps.get_drafts.outputs.version }} --allow-dirty patch --verbose
 
       - name: Check for Changes
         id: changes
@@ -83,7 +85,7 @@ jobs:
         if: steps.changes.outputs.changes == 'true'
         run: |
           git add client_code/ server_code/
-          git commit -m "Bump version to $VERSION" || echo "No changes to commit"
+          git commit -m "Bump version to ${{ steps.get_drafts.outputs.version }}" || echo "No changes to commit"
 
       - name: Push Changes
         if: steps.changes.outputs.changes == 'true'
