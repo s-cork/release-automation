@@ -1,4 +1,8 @@
 allow_embedding: false
+dependencies:
+- dep_id: dep_7j5f4vrmd24y5
+  resolution_hints: {app_id: EQ2LQUPEGOOCTWGE, name: anvil-extras-local, package_name: anvil_extras_local}
+  version: {version_tag: v2.7.1}
 name: release-automation
 package_name: release_automation
 runtime_options:
